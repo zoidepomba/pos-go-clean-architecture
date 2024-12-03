@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package order;
+
+// Adicione esta linha com o caminho do pacote Go onde os arquivos gerados serão colocados
+option go_package = "project/proto;proto";
+
+service OrderService {
+    rpc ListOrders (ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+message ListOrdersRequest {}
+
+message ListOrdersResponse {
+    repeated Order orders = 1;
+}
+
+message Order {
+    int32 id = 1;
+    string customer_name = 2;
+    float total_amount = 3;
+    string created_at = 4;
+}

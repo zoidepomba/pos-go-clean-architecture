@@ -4,8 +4,8 @@ services:
   app:
     build: .
     ports:
-      - "8081:8080"
-      - "50050:50051"
+      - "8080:8080"
+      - "50051:50051"
     depends_on:
       - db
       - migrate

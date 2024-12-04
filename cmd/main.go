@@ -37,12 +37,24 @@ func main() {
 
 	// Inicializar servidor HTTP
 	go func() {
-		http.HandleFunc("/order", orderHandler.ListOrders)
+		mux := http.NewServeMux()
+		
+		// Rota para listar orders (GET)
+		mux.HandleFunc("/order", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				orderHandler.ListOrders(w, r)
+			} else if r.Method == http.MethodPost {
+				orderHandler.CreateOrder(w, r)
+			} else {
+				http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+			}
+		})
+		
 		fmt.Println("Servidor HTTP rodando na porta 8080...")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
+		if err := http.ListenAndServe(":8080", mux); err != nil {
 			log.Fatalf("Erro ao iniciar servidor HTTP: %v", err)
 		}
-	}()
+		}()
 
 	// Inicializar servidor GRPC
 	go func() {

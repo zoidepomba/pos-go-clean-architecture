@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
+	"os"
+
+	"google.golang.org/grpc"
 
 	_ "github.com/lib/pq" // Driver para PostgreSQL
 
@@ -19,8 +21,20 @@ import (
 )
 
 func main() {
+	// Pegue as variáveis de ambiente
+	
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+
+	// Construa a string de conexão
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
+	log.Println(dsn)
 	// Configuração do banco de dados
-	db, err := sql.Open("postgres", "postgres://user:password@localhost:5432/orders_db?sslmode=disable")
+
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
 	}
@@ -38,7 +52,7 @@ func main() {
 	// Inicializar servidor HTTP
 	go func() {
 		mux := http.NewServeMux()
-		
+
 		// Rota para listar orders (GET)
 		mux.HandleFunc("/order", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
@@ -49,12 +63,12 @@ func main() {
 				http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 			}
 		})
-		
+
 		fmt.Println("Servidor HTTP rodando na porta 8080...")
 		if err := http.ListenAndServe(":8080", mux); err != nil {
 			log.Fatalf("Erro ao iniciar servidor HTTP: %v", err)
 		}
-		}()
+	}()
 
 	// Inicializar servidor GRPC
 	go func() {

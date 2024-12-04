@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  app:
+    build: .
+    ports:
+      - "8081:8080"
+      - "50050:50051"
+    depends_on:
+      - db
+      - migrate
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=orders_db
+
   db:
     image: postgres:14
     container_name: postgres_db
@@ -16,7 +31,7 @@ services:
   migrate:
     image: migrate/migrate
     container_name: migrate_service
-    entrypoint: ["migrate", "-path", "/migrations", "-database", "postgres://user:password@db:5432/orders_db?sslmode=disable", "up"]
+    entrypoint: [ "migrate", "-path", "/migrations", "-database", "postgres://user:password@db:5432/orders_db?sslmode=disable", "up" ]
     depends_on:
       - db
     volumes:

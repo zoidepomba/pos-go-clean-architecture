@@ -8,7 +8,6 @@ services:
       - "50051:50051"
     depends_on:
       - db
-      - migrate
     environment:
       - DB_HOST=db
       - DB_PORT=5432
@@ -27,15 +26,6 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-
-  migrate:
-    image: migrate/migrate
-    container_name: migrate_service
-    entrypoint: [ "migrate", "-path", "/migrations", "-database", "postgres://user:password@db:5432/orders_db?sslmode=disable", "up" ]
-    depends_on:
-      - db
-    volumes:
-      - ./migrations:/migrations
 
 volumes:
   db_data:

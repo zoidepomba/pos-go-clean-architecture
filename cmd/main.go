@@ -1,12 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"os"
 
 	"google.golang.org/grpc"
 
@@ -16,32 +14,24 @@ import (
 	httpHandler "project/internal/delivery/http"
 	"project/internal/repository"
 	"project/internal/service"
+	"project/internal/database"
+	"project/internal/config"
 
 	pb "project/proto"
 )
 
 func main() {
 	// Pegue as variáveis de ambiente
+	cfg := config.LoadConfig()
 	
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
 
-	// Construa a string de conexão
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
-	log.Println(dsn)
-	// Configuração do banco de dados
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
-	}
+	db := database.NewPostgresDB(cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort,   cfg.DBName)
 	defer db.Close()
+	
+	database.RunMigration(db)
 
 	// Inicializar repositório
-	orderRepo := &repository.OrderRepository{DB: db}
+	orderRepo := &repository.OrderRepository{DB: db.DB}
 
 	// Inicializar serviço
 	orderService := &service.OrderService{Repo: orderRepo}
